@@ -18,6 +18,12 @@ type ExcelInspection = {
 
 type CoordinateMode = 'MissingOnly' | 'All'
 type RouteType = 'TODAS' | 'VENTA' | 'ENTREGA'
+
+const routeTypeOptions: { value: RouteType; title: string; description: string }[] = [
+  { value: 'TODAS', title: 'Ventas y entregas', description: 'Todas las sucursales, un marcador por cada una.' },
+  { value: 'VENTA', title: 'Solo ventas', description: 'Direcciones de venta; si no hay, usa las de entrega.' },
+  { value: 'ENTREGA', title: 'Solo entregas', description: 'Solo las direcciones de entrega del cliente.' },
+]
 type CoordinateLayout = 'None' | 'Combined' | 'Separate'
 
 type ExportSummary = {
@@ -474,15 +480,26 @@ function App() {
                 <ModeOption checked={coordinateMode === 'MissingOnly'} title="Solo completar las faltantes" description="Conserva las coordenadas válidas del Excel y consulta solo donde falten." icon={<SparkIcon />} onClick={() => setCoordinateMode('MissingOnly')} />
                 <ModeOption checked={coordinateMode === 'All'} title="Consultar y validar todas" description="Consulta cada código y reemplaza las coordenadas cuando el API tenga datos." icon={<RefreshIcon />} onClick={() => setCoordinateMode('All')} />
               </div>
-              <div className="select-grid route-type-grid">
-                <label className="column-select">
-                  <span>¿Qué direcciones del GPS consultar?</span>
-                  <select value={routeType} onChange={(event) => setRouteType(event.target.value as RouteType)}>
-                    <option value="TODAS">Ambas: ventas y entregas (un marcador por sucursal)</option>
-                    <option value="VENTA">Solo ventas</option>
-                    <option value="ENTREGA">Solo entregas</option>
-                  </select>
-                </label>
+              <div className="route-type-panel">
+                <div className="subheading">
+                  <h3>¿Qué direcciones del GPS consultar?</h3>
+                  <p>Un cliente puede tener una sucursal de venta y varias de entrega; cada una sale como marcador.</p>
+                </div>
+                <div className="route-type-grid" role="radiogroup" aria-label="Direcciones del GPS">
+                  {routeTypeOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={routeType === option.value}
+                      className={`route-type-option ${routeType === option.value ? 'selected' : ''}`}
+                      onClick={() => setRouteType(option.value)}
+                    >
+                      <span className="radio-dot" aria-hidden="true" />
+                      <span><strong>{option.title}</strong><small>{option.description}</small></span>
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="color-note">
                 <span className="color-swatch" />
