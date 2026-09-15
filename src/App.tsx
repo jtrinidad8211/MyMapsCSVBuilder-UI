@@ -261,13 +261,19 @@ function App() {
 
         <ol className="steps" aria-label={`Paso actual ${progressStep} de 3`}>
           <li className={progressStep >= 1 ? 'active' : ''}>
-            <span>1</span> Cargar archivo
+            <span>1</span>
+            <small className="step-full">Cargar archivo</small>
+            <small className="step-short">Cargar</small>
           </li>
           <li className={progressStep >= 2 ? 'active' : ''}>
-            <span>2</span> Configurar datos
+            <span>2</span>
+            <small className="step-full">Configurar datos</small>
+            <small className="step-short">Configurar</small>
           </li>
           <li className={progressStep >= 3 ? 'active' : ''}>
-            <span>3</span> Generar archivos
+            <span>3</span>
+            <small className="step-full">Generar archivos</small>
+            <small className="step-short">Generar</small>
           </li>
         </ol>
       </section>

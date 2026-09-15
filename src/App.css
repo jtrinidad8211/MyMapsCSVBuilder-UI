@@ -39,6 +39,8 @@
 .steps::before { content: ''; position: absolute; top: 13px; left: 13%; right: 13%; height: 2px; background: rgba(255,255,255,.2); }
 .steps li { position: relative; z-index: 1; min-width: 120px; display: flex; flex-direction: column; align-items: center; gap: 5px; color: #8fa5c0; font-size: 11.5px; font-weight: 700; }
 .steps li span { width: 27px; height: 27px; display: grid; place-items: center; border: 2px solid #7189a5; border-radius: 50%; background: #1c3b66; font-size: 11.5px; }
+.steps li small { font-size: inherit; font-weight: inherit; }
+.steps li .step-short { display: none; }
 .steps li.active { color: #eef6ff; }
 .steps li.active span { color: #fff; border-color: #80b8ff; background: var(--blue); box-shadow: 0 0 0 4px rgba(76,143,226,.18); }
 
@@ -188,7 +190,9 @@ footer svg { width: 15px; }
 @media (max-width: 560px) {
   .hero { padding-inline: 16px; }
   .hero > p { font-size: 13.5px; }
-  .steps li { min-width: 80px; font-size: 10px; }
+  .steps li { min-width: 64px; font-size: 10.5px; }
+  .steps li .step-full { display: none; }
+  .steps li .step-short { display: inline; }
   .inspect-controls { align-items: stretch; flex-direction: column; }
   .input-with-icon { width: 100%; }
   .button.secondary { width: 100%; }
