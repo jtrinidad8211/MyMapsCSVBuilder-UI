@@ -17,6 +17,7 @@ type ExcelInspection = {
 }
 
 type CoordinateMode = 'MissingOnly' | 'All'
+type RouteType = 'TODAS' | 'VENTA' | 'ENTREGA'
 type CoordinateLayout = 'None' | 'Combined' | 'Separate'
 
 type ExportSummary = {
@@ -50,6 +51,7 @@ function App() {
   const [coordinatesColumn, setCoordinatesColumn] = useState<number | null>(null)
   const [coordinateLayout, setCoordinateLayout] = useState<CoordinateLayout>('None')
   const [coordinateMode, setCoordinateMode] = useState<CoordinateMode>('MissingOnly')
+  const [routeType, setRouteType] = useState<RouteType>('TODAS')
   const [isDragging, setIsDragging] = useState(false)
   const [isInspecting, setIsInspecting] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
@@ -169,6 +171,7 @@ function App() {
       if (coordinateLayout === 'Separate' && longitudeColumn) form.append('LongitudeColumn', String(longitudeColumn))
       if (coordinateLayout === 'Combined' && coordinatesColumn) form.append('CoordinatesColumn', String(coordinatesColumn))
       form.append('CoordinateMode', coordinateMode)
+      form.append('RouteType', routeType)
 
       const response = await fetch('/api/excel/export', { method: 'POST', body: form })
       if (!response.ok) throw new Error(await readApiError(response))
@@ -470,6 +473,16 @@ function App() {
               <div className="mode-grid">
                 <ModeOption checked={coordinateMode === 'MissingOnly'} title="Solo completar las faltantes" description="Conserva las coordenadas válidas del Excel y consulta solo donde falten." icon={<SparkIcon />} onClick={() => setCoordinateMode('MissingOnly')} />
                 <ModeOption checked={coordinateMode === 'All'} title="Consultar y validar todas" description="Consulta cada código y reemplaza las coordenadas cuando el API tenga datos." icon={<RefreshIcon />} onClick={() => setCoordinateMode('All')} />
+              </div>
+              <div className="select-grid route-type-grid">
+                <label className="column-select">
+                  <span>¿Qué direcciones del GPS consultar?</span>
+                  <select value={routeType} onChange={(event) => setRouteType(event.target.value as RouteType)}>
+                    <option value="TODAS">Ambas: ventas y entregas (un marcador por sucursal)</option>
+                    <option value="VENTA">Solo ventas</option>
+                    <option value="ENTREGA">Solo entregas</option>
+                  </select>
+                </label>
               </div>
               <div className="color-note">
                 <span className="color-swatch" />
