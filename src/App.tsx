@@ -123,6 +123,18 @@ function App() {
     resetInspection()
   }
 
+  const clearAll = () => {
+    setFile(null)
+    setHeaderRow(1)
+    setError('')
+    setCoordinateMode('MissingOnly')
+    setRouteType('TODAS')
+    setUseRowColors(true)
+    resetInspection()
+    // Permite volver a elegir el mismo archivo despues de limpiar.
+    if (inputRef.current) inputRef.current.value = ''
+  }
+
   const inspectFile = async (worksheet?: string) => {
     if (!file) {
       setError('Selecciona un archivo Excel antes de continuar.')
@@ -339,15 +351,28 @@ function App() {
                 />
               </span>
             </label>
-            <button
-              className="button secondary"
-              type="button"
-              disabled={!file || isInspecting}
-              onClick={() => inspectFile()}
-            >
-              {isInspecting ? <Spinner /> : <SearchIcon />}
-              {isInspecting ? 'Leyendo Excel…' : 'Mostrar encabezados'}
-            </button>
+            <div className="inspect-actions">
+              {file && (
+                <button
+                  className="button ghost"
+                  type="button"
+                  disabled={isInspecting || isExporting}
+                  onClick={clearAll}
+                >
+                  <TrashIcon />
+                  Quitar archivo
+                </button>
+              )}
+              <button
+                className="button secondary"
+                type="button"
+                disabled={!file || isInspecting}
+                onClick={() => inspectFile()}
+              >
+                {isInspecting ? <Spinner /> : <SearchIcon />}
+                {isInspecting ? 'Leyendo Excel…' : 'Mostrar encabezados'}
+              </button>
+            </div>
           </div>
         </article>
 
@@ -709,6 +734,7 @@ const RefreshIcon = () => <Icon><path d="M20 6v5h-5"/><path d="M18.5 8A8 8 0 1 0
 const DownloadIcon = () => <Icon><path d="M12 3v13m0 0 5-5m-5 5-5-5"/><path d="M4 20h16"/></Icon>
 const AlertIcon = () => <Icon><path d="M12 3 2 21h20L12 3Z"/><path d="M12 9v5M12 18h.01"/></Icon>
 const CheckCircleIcon = () => <Icon><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></Icon>
+const TrashIcon = () => <Icon><path d="M4 7h16M10 11v6M14 11v6"/><path d="m6 7 1 13h10l1-13M9 7V4h6v3"/></Icon>
 const Spinner = () => <span className="spinner" aria-hidden="true" />
 
 export default App

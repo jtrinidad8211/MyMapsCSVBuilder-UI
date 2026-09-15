@@ -76,7 +76,10 @@
 .button.secondary:hover { background: #dcecff; }
 .button.primary { min-height: 44px; padding: 0 20px; color: #fff; background: linear-gradient(135deg, #3279d4, #245fa9); box-shadow: 0 8px 20px rgba(37,102,180,.22); }
 .button.primary:hover { transform: translateY(-1px); box-shadow: 0 11px 24px rgba(37,102,180,.28); }
+.button.ghost { color: #9d4a42; border: 1px solid #efd4d0; background: #fff; }
+.button.ghost:hover { background: #fff4f2; }
 .button:disabled { opacity: .48; cursor: not-allowed; transform: none; box-shadow: none; }
+.inspect-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 
 .alert { padding: 12px 15px; border-radius: 11px; display: flex; align-items: center; gap: 11px; font-size: 12.5px; }
 .alert > svg { flex: 0 0 auto; width: 20px; }
@@ -195,7 +198,8 @@ footer svg { width: 15px; }
   .steps li .step-short { display: inline; }
   .inspect-controls { align-items: stretch; flex-direction: column; }
   .input-with-icon { width: 100%; }
-  .button.secondary { width: 100%; }
+  .button.secondary, .button.ghost { width: 100%; }
+  .inspect-actions { flex-direction: column-reverse; }
   .workbook-meta { align-items: stretch; flex-direction: column; }
   .table-toolbar { gap: 8px; }
 }
