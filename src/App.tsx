@@ -8,12 +8,18 @@ type ExcelHeader = {
   sampleValues: string[]
 }
 
+type LegendEntry = {
+  color: string
+  label: string
+}
+
 type ExcelInspection = {
   worksheets: string[]
   worksheet: string
   headerRow: number
   totalDataRows: number
   headers: ExcelHeader[]
+  legend: LegendEntry[]
 }
 
 type CoordinateMode = 'MissingOnly' | 'All'
@@ -58,6 +64,10 @@ function App() {
   const [coordinateLayout, setCoordinateLayout] = useState<CoordinateLayout>('None')
   const [coordinateMode, setCoordinateMode] = useState<CoordinateMode>('MissingOnly')
   const [routeType, setRouteType] = useState<RouteType>('TODAS')
+  const [useLegend, setUseLegend] = useState(false)
+  const [useRowColors, setUseRowColors] = useState(true)
+  // La leyenda se relaciona por color, por eso requiere los colores de las filas.
+  const canUseLegend = useRowColors && (inspection?.legend.length ?? 0) > 0
   const [isDragging, setIsDragging] = useState(false)
   const [isInspecting, setIsInspecting] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
@@ -96,6 +106,7 @@ function App() {
     setLongitudeColumn(null)
     setCoordinatesColumn(null)
     setCoordinateLayout('None')
+    setUseLegend(false)
     setSummary(null)
   }
 
@@ -134,6 +145,7 @@ function App() {
       const result = (await response.json()) as ExcelInspection
       setInspection(result)
       setSelectedColumns(new Set(result.headers.map((header) => header.columnIndex)))
+      setUseLegend(result.legend.length > 0)
       setClientCodeColumn(findHeader(result.headers, clientCodePattern))
       setClientNameColumn(findHeader(result.headers, clientNamePattern))
       const combinedColumn = findHeader(result.headers, combinedCoordinatesPattern)
@@ -178,6 +190,8 @@ function App() {
       if (coordinateLayout === 'Combined' && coordinatesColumn) form.append('CoordinatesColumn', String(coordinatesColumn))
       form.append('CoordinateMode', coordinateMode)
       form.append('RouteType', routeType)
+      form.append('UseRowColors', String(useRowColors))
+      form.append('UseLegend', String(canUseLegend && useLegend))
 
       const response = await fetch('/api/excel/export', { method: 'POST', body: form })
       if (!response.ok) throw new Error(await readApiError(response))
@@ -464,6 +478,60 @@ function App() {
                   </div>
                 )}
                 {!hasValidCoordinateSelection && <p className="field-warning">Selecciona las columnas necesarias para el formato elegido.</p>}
+              </div>
+
+              <div className="special-columns legend-settings">
+                <div className="subheading">
+                  <h3>Colores y leyenda</h3>
+                  <p>Elige si el mapa usa el color de relleno de cada fila y la leyenda del Excel.</p>
+                </div>
+                <div className="legend-options">
+                  <label className="legend-toggle">
+                    <span className="check-control">
+                      <input
+                        type="checkbox"
+                        checked={useRowColors}
+                        onChange={(event) => setUseRowColors(event.target.checked)}
+                      />
+                      <span><CheckIcon /></span>
+                    </span>
+                    <span>
+                      <strong>Cargar el color de cada fila</strong>
+                      <small>Agrega la columna Color y pinta cada marcador. Si lo desactivas, todos usan el azul de My Maps.</small>
+                    </span>
+                  </label>
+                  <label className={`legend-toggle ${canUseLegend ? '' : 'disabled'}`}>
+                    <span className="check-control">
+                      <input
+                        type="checkbox"
+                        checked={canUseLegend && useLegend}
+                        disabled={!canUseLegend}
+                        onChange={(event) => setUseLegend(event.target.checked)}
+                      />
+                      <span><CheckIcon /></span>
+                    </span>
+                    <span>
+                      <strong>Usar la leyenda como columna Categoría</strong>
+                      <small>
+                        {inspection.legend.length === 0
+                          ? 'No encontramos celdas con color y texto arriba de la fila de encabezados.'
+                          : useRowColors
+                            ? `Encontramos ${inspection.legend.length} colores con texto arriba de la fila de encabezados.`
+                            : 'Activa el color de cada fila para usar la leyenda.'}
+                      </small>
+                    </span>
+                  </label>
+                </div>
+                {inspection.legend.length > 0 && (
+                  <ul className={`legend-list ${canUseLegend && useLegend ? '' : 'inactive'}`} aria-label="Leyenda encontrada">
+                    {inspection.legend.map((entry) => (
+                      <li key={entry.color}>
+                        <span className="legend-swatch" style={{ background: entry.color }} aria-hidden="true" />
+                        {entry.label}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </article>
 

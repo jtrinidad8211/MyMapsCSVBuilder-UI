@@ -122,6 +122,18 @@
 .coordinate-example b { width: 100%; color: #4d5d72; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
 .coordinate-example code { padding: 3px 7px; border-radius: 5px; color: #275f9f; background: #eaf3fd; font: 600 11px Consolas, monospace; }
 .field-warning { margin: 11px 0 0; color: #b85147; font-size: 12px; }
+.legend-settings { display: grid; gap: 14px; }
+.legend-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.legend-toggle { padding: 12px 13px; border: 1px solid #dfe7f1; border-radius: 11px; display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; background: #fff; cursor: pointer; }
+.legend-toggle strong, .legend-toggle small { display: block; }
+.legend-toggle strong { margin: 1px 0 3px; color: var(--navy); font: 700 12.5px/1.25 'Manrope', sans-serif; }
+.legend-toggle small { color: var(--muted); font-size: 11px; line-height: 1.4; }
+.legend-toggle.disabled { opacity: .5; cursor: not-allowed; }
+.legend-toggle .check-control span { background: #fff; }
+.legend-list { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px; transition: opacity .2s ease; }
+.legend-list.inactive { opacity: .45; }
+.legend-list li { padding: 6px 11px; border: 1px solid #dfe7f1; border-radius: 999px; display: inline-flex; align-items: center; gap: 7px; color: #445268; background: #fff; font-size: 11.5px; }
+.legend-swatch { flex: 0 0 auto; width: 13px; height: 13px; border-radius: 4px; box-shadow: 0 0 0 1px rgba(0,0,0,.14); }
 
 .coordinate-card { display: grid; grid-template-columns: .8fr 1.45fr; align-items: center; gap: 28px; }
 .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -167,6 +179,7 @@ footer svg { width: 15px; }
   .coordinate-card { display: grid; grid-template-columns: 1fr; }
   .select-grid, .select-grid.base-settings, .select-grid.coordinate-pickers, .mode-grid { grid-template-columns: 1fr; }
   .route-type-panel, .route-type-grid { grid-template-columns: 1fr; gap: 14px; }
+  .legend-options { grid-template-columns: 1fr; }
   .export-panel { display: flex; }
   .export-panel .button { width: 100%; }
 }
