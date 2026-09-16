@@ -135,11 +135,22 @@
 .legend-toggle strong { margin: 1px 0 2px; color: var(--navy); font: 700 12.5px/1.25 'Manrope', sans-serif; }
 .legend-toggle small { color: var(--muted); font-size: 11px; line-height: 1.4; }
 .legend-toggle.disabled { opacity: .5; cursor: not-allowed; }
+.legend-toggle.wide { grid-column: 1 / -1; }
 .legend-toggle .check-control span { background: #fff; }
-.legend-list { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; transition: opacity .2s ease; }
-.legend-list.inactive { opacity: .45; }
+.legend-warning { padding: 8px 11px; border: 1px solid #f1d7a4; border-radius: 9px; color: #76561a; background: #fff9ec; font-size: 11.5px; line-height: 1.45; }
+.legend-warning strong { color: #67470d; }
+.legend-order { display: grid; gap: 7px; transition: opacity .2s ease; }
+.legend-order.inactive { opacity: .45; }
+.legend-order-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; color: var(--navy); font-size: 11.5px; }
+.legend-order-heading small { color: var(--muted); font-size: 10.5px; }
+.legend-list { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
 .legend-list li { padding: 4px 10px; border: 1px solid #dfe7f1; border-radius: 999px; display: inline-flex; align-items: center; gap: 6px; color: #445268; background: #fff; font-size: 11.5px; }
 .legend-swatch { flex: 0 0 auto; width: 12px; height: 12px; border-radius: 3px; box-shadow: 0 0 0 1px rgba(0,0,0,.14); }
+.legend-label { white-space: nowrap; }
+.legend-order-buttons { display: inline-flex; gap: 2px; margin-left: 2px; }
+.legend-order-buttons button { width: 20px; height: 20px; padding: 0; border: 1px solid #d7dee8; border-radius: 50%; color: #426a9a; background: #f7f9fc; cursor: pointer; font: 700 12px/1 sans-serif; }
+.legend-order-buttons button:hover:not(:disabled) { border-color: #8fb2dd; background: #edf4fc; }
+.legend-order-buttons button:disabled { opacity: .35; cursor: default; }
 
 .coordinate-card { display: grid; grid-template-columns: .8fr 1.45fr; align-items: center; gap: 14px 20px; }
 .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }

@@ -65,9 +65,12 @@ function App() {
   const [coordinateMode, setCoordinateMode] = useState<CoordinateMode>('MissingOnly')
   const [routeType, setRouteType] = useState<RouteType>('TODAS')
   const [useLegend, setUseLegend] = useState(false)
+  const [generateLegendLayers, setGenerateLegendLayers] = useState(false)
+  const [legendOrder, setLegendOrder] = useState<string[]>([])
   const [useRowColors, setUseRowColors] = useState(true)
   // La leyenda se relaciona por color, por eso requiere los colores de las filas.
   const canUseLegend = useRowColors && (inspection?.legend.length ?? 0) > 0
+  const canGenerateLegendLayers = canUseLegend && useLegend
   const [isDragging, setIsDragging] = useState(false)
   const [isInspecting, setIsInspecting] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
@@ -96,6 +99,15 @@ function App() {
         .map((header) => header.name) ?? [],
     [inspection, selectedColumns],
   )
+  const orderedLegend = useMemo(() => {
+    if (!inspection) return []
+    const positionByColor = new Map(legendOrder.map((color, index) => [color, index]))
+    return [...inspection.legend].sort(
+      (left, right) =>
+        (positionByColor.get(left.color) ?? Number.MAX_SAFE_INTEGER) -
+        (positionByColor.get(right.color) ?? Number.MAX_SAFE_INTEGER),
+    )
+  }, [inspection, legendOrder])
 
   const resetInspection = () => {
     setInspection(null)
@@ -107,6 +119,8 @@ function App() {
     setCoordinatesColumn(null)
     setCoordinateLayout('None')
     setUseLegend(false)
+    setGenerateLegendLayers(false)
+    setLegendOrder([])
     setSummary(null)
   }
 
@@ -158,6 +172,8 @@ function App() {
       setInspection(result)
       setSelectedColumns(new Set(result.headers.map((header) => header.columnIndex)))
       setUseLegend(result.legend.length > 0)
+      setGenerateLegendLayers(false)
+      setLegendOrder(result.legend.map((entry) => entry.color))
       setClientCodeColumn(findHeader(result.headers, clientCodePattern))
       setClientNameColumn(findHeader(result.headers, clientNamePattern))
       const combinedColumn = findHeader(result.headers, combinedCoordinatesPattern)
@@ -204,6 +220,8 @@ function App() {
       form.append('RouteType', routeType)
       form.append('UseRowColors', String(useRowColors))
       form.append('UseLegend', String(canUseLegend && useLegend))
+      form.append('GenerateLegendLayers', String(canGenerateLegendLayers && generateLegendLayers))
+      orderedLegend.forEach((entry) => form.append('LegendOrder', entry.color))
 
       const response = await fetch('/api/excel/export', { method: 'POST', body: form })
       if (!response.ok) throw new Error(await readApiError(response))
@@ -226,6 +244,15 @@ function App() {
     } finally {
       setIsExporting(false)
     }
+  }
+
+  const moveLegendEntry = (index: number, offset: number) => {
+    const target = index + offset
+    if (target < 0 || target >= orderedLegend.length) return
+
+    const nextOrder = orderedLegend.map((entry) => entry.color)
+    ;[nextOrder[index], nextOrder[target]] = [nextOrder[target], nextOrder[index]]
+    setLegendOrder(nextOrder)
   }
 
   const toggleColumn = (columnIndex: number) => {
@@ -522,7 +549,14 @@ function App() {
                       <input
                         type="checkbox"
                         checked={useRowColors}
-                        onChange={(event) => setUseRowColors(event.target.checked)}
+                        onChange={(event) => {
+                          const checked = event.target.checked
+                          setUseRowColors(checked)
+                          if (!checked) {
+                            setUseLegend(false)
+                            setGenerateLegendLayers(false)
+                          }
+                        }}
                       />
                       <span><CheckIcon /></span>
                     </span>
@@ -537,12 +571,16 @@ function App() {
                         type="checkbox"
                         checked={canUseLegend && useLegend}
                         disabled={!canUseLegend}
-                        onChange={(event) => setUseLegend(event.target.checked)}
+                        onChange={(event) => {
+                          const checked = event.target.checked
+                          setUseLegend(checked)
+                          if (!checked) setGenerateLegendLayers(false)
+                        }}
                       />
                       <span><CheckIcon /></span>
                     </span>
                     <span>
-                      <strong>Usar la leyenda como columna Categoría</strong>
+                      <strong>Agregar la columna Leyenda</strong>
                       <small>
                         {inspection.legend.length === 0
                           ? 'No encontramos celdas con color y texto arriba de la fila de encabezados.'
@@ -552,16 +590,44 @@ function App() {
                       </small>
                     </span>
                   </label>
+                  <label className={`legend-toggle wide ${canGenerateLegendLayers ? '' : 'disabled'}`}>
+                    <span className="check-control">
+                      <input
+                        type="checkbox"
+                        checked={canGenerateLegendLayers && generateLegendLayers}
+                        disabled={!canGenerateLegendLayers}
+                        onChange={(event) => setGenerateLegendLayers(event.target.checked)}
+                      />
+                      <span><CheckIcon /></span>
+                    </span>
+                    <span>
+                      <strong>Generar la carpeta capas-por-leyenda</strong>
+                      <small>Opcional: crea un KML independiente por cada elemento de la leyenda para importarlo como capa en My Maps.</small>
+                    </span>
+                  </label>
                 </div>
-                {inspection.legend.length > 0 && (
-                  <ul className={`legend-list ${canUseLegend && useLegend ? '' : 'inactive'}`} aria-label="Leyenda encontrada">
-                    {inspection.legend.map((entry) => (
+                <div className="legend-warning" role="note">
+                  <strong>Nota:</strong> en ocasiones My Maps no asigna automáticamente los colores de la leyenda. Si sucede, debes establecerlos directamente en My Maps. Dentro de “Estilo de Leyenda”, My Maps ordena los grupos por cantidad; el orden elegido abajo se aplica a los archivos y capas independientes.
+                </div>
+                {orderedLegend.length > 0 && (
+                  <div className={`legend-order ${canUseLegend && useLegend ? '' : 'inactive'}`}>
+                    <div className="legend-order-heading">
+                      <strong>Orden de las capas de la leyenda</strong>
+                      <small>Se aplica a los archivos numerados de capas-por-leyenda.</small>
+                    </div>
+                    <ol className="legend-list" aria-label="Orden de la leyenda">
+                    {orderedLegend.map((entry, index) => (
                       <li key={entry.color}>
                         <span className="legend-swatch" style={{ background: entry.color }} aria-hidden="true" />
-                        {entry.label}
+                        <span className="legend-label">{entry.label}</span>
+                        <span className="legend-order-buttons">
+                          <button type="button" disabled={index === 0} onClick={() => moveLegendEntry(index, -1)} aria-label={`Subir ${entry.label}`}>↑</button>
+                          <button type="button" disabled={index === orderedLegend.length - 1} onClick={() => moveLegendEntry(index, 1)} aria-label={`Bajar ${entry.label}`}>↓</button>
+                        </span>
                       </li>
                     ))}
-                  </ul>
+                    </ol>
+                  </div>
                 )}
               </div>
             </article>
@@ -602,7 +668,7 @@ function App() {
               </div>
               <div className="color-note">
                 <span className="color-swatch" />
-                Importa el KML o KMZ en My Maps y deja la capa en Estilos individuales para conservar el color de relleno de cada fila. Si agrupas por Color, My Maps asigna sus propios colores a cada grupo. Si tu Excel tiene una leyenda con colores arriba de los encabezados, se agrega la columna Categoría: agrupa por ella para usar el panel de la capa como leyenda.
+                Importa el KML o KMZ en My Maps y deja la capa en Estilos individuales para aplicar el color de relleno de cada fila. La columna Color del CSV es informativa: My Maps no interpreta RGB o hexadecimal desde una columna. Si seleccionas “Generar la carpeta capas-por-leyenda”, el ZIP incluirá un KML por elemento para importarlo como capa separada.
               </div>
             </article>
 
@@ -610,7 +676,7 @@ function App() {
               <div>
                 <span className="section-label">PASO 3</span>
                 <h2>Tu paquete está listo para generarse</h2>
-                <p>Incluye CSV, KML y KMZ con colores exactos · {selectedNames.length} columnas · {inspection.totalDataRows.toLocaleString('es-DO')} filas</p>
+                <p>Incluye CSV, KML y KMZ con estilos compatibles con My Maps · {selectedNames.length} columnas · {inspection.totalDataRows.toLocaleString('es-DO')} filas</p>
               </div>
               <button className="button primary" type="button" disabled={!canExport} onClick={exportCsv}>
                 {isExporting ? <Spinner /> : <DownloadIcon />}
@@ -625,7 +691,7 @@ function App() {
             <CheckCircleIcon />
             <div>
               <strong>Paquete CSV + KML + KMZ descargado correctamente</strong>
-              <span>{summary.rows} filas ubicables · {summary.placemarks} marcadores · importa el KMZ para conservar los colores · {summary.requested} códigos consultados · {summary.found} encontrados · {summary.updated} filas actualizadas{summary.unresolved > 0 ? ` · ${summary.unresolved} sin ubicación en el mapa` : ''}{summary.notFound > 0 ? ` · ${summary.notFound} en el CSV de no encontrados` : ''}{summary.repeated > 0 ? ` · ${summary.repeated} con coordenadas repetidas en GPS (ver CSV)` : ''}{summary.extraSites > 0 ? ` · ${summary.extraSites} marcadores de sucursales adicionales` : ''}</span>
+              <span>{summary.rows} filas ubicables · {summary.placemarks} marcadores · {canGenerateLegendLayers && generateLegendLayers ? 'importa como capas los KML de la carpeta capas-por-leyenda' : 'importa el KML o KMZ y conserva Estilos individuales'} · {summary.requested} códigos consultados · {summary.found} encontrados · {summary.updated} filas actualizadas{summary.unresolved > 0 ? ` · ${summary.unresolved} sin ubicación en el mapa` : ''}{summary.notFound > 0 ? ` · ${summary.notFound} en el CSV de no encontrados` : ''}{summary.repeated > 0 ? ` · ${summary.repeated} con coordenadas repetidas en GPS (ver CSV)` : ''}{summary.extraSites > 0 ? ` · ${summary.extraSites} marcadores de sucursales adicionales` : ''}</span>
             </div>
           </div>
         )}
